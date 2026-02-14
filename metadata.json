@@ -1,0 +1,7 @@
+{
+  "name": "Escala Ministerial - Igreja",
+  "description": "Um sistema moderno e intuitivo para agendamento de bandas e músicos de igreja, focado em evitar conflitos e organizar as escalas de sábados.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
