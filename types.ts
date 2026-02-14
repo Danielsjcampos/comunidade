@@ -5,6 +5,8 @@ export interface User {
   email: string;
   telefone: string;
   banda?: string;
+  photo_url?: string;
+  integrantes?: string; // Comma separated or JSON string
   role?: 'admin' | 'user';
 }
 
@@ -24,6 +26,7 @@ export interface Booking {
   status: 'confirmado' | 'pendente';
   user_name?: string;
   banda_name?: string;
+  photo_url?: string;
 }
 
 export interface AppState {

@@ -10,6 +10,7 @@ const Bands: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewingMembers, setViewingMembers] = useState<string | null>(null);
 
   useEffect(() => {
     loadBands();
@@ -82,24 +83,44 @@ const Bands: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredUsers.map(u => (
-              <div key={u.id} className="bg-white dark:bg-dark-surface p-6 rounded-4xl shadow-soft border border-gray-100 dark:border-white/5 flex items-center gap-6 hover:shadow-md transition-all group border-b-4 border-b-transparent hover:border-b-mint active:scale-[0.99]">
-                <div className="size-20 rounded-3xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-navy dark:text-white shrink-0 group-hover:scale-105 transition-transform overflow-hidden font-black text-2xl uppercase border border-gray-100 dark:border-white/5">
-                   {u.banda ? u.banda.substring(0, 1) : u.nome.substring(0, 1)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-black text-xl text-navy dark:text-white truncate tracking-tight">{u.banda || 'Músico Individual'}</h4>
-                  <p className="text-sm font-bold text-mint uppercase tracking-widest mt-0.5">{u.nome}</p>
-                  <div className="flex items-center gap-3 mt-3">
-                    <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/40 text-xs font-bold transition-colors">
-                       <span className="material-symbols-outlined text-sm">call</span>
-                       {u.telefone || 'Sem tel'}
+              <div key={u.id} className="bg-white dark:bg-dark-surface p-6 rounded-4xl shadow-soft border border-gray-100 dark:border-white/5 flex flex-col gap-4 hover:shadow-md transition-all group border-b-4 border-b-transparent hover:border-b-mint active:scale-[0.99] relative overflow-hidden">
+                <div className="flex items-center gap-6">
+                  <div className="size-20 rounded-3xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-navy dark:text-white shrink-0 group-hover:scale-105 transition-transform overflow-hidden font-black text-2xl uppercase border border-gray-100 dark:border-white/5 shadow-sm">
+                    {u.photo_url ? (
+                      <img src={u.photo_url} alt={u.banda} className="w-full h-full object-cover" />
+                    ) : (
+                      u.banda ? u.banda.substring(0, 1) : u.nome.substring(0, 1)
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-black text-xl text-navy dark:text-white truncate tracking-tight">{u.banda || 'Músico Individual'}</h4>
+                    <p className="text-sm font-bold text-mint uppercase tracking-widest mt-0.5">{u.nome}</p>
+                    <div className="flex items-center gap-3 mt-3">
+                      <div className="flex items-center gap-1.5 text-gray-400 dark:text-white/40 text-xs font-bold transition-colors">
+                        <span className="material-symbols-outlined text-sm">call</span>
+                        {u.telefone || 'Sem tel'}
+                      </div>
                     </div>
                   </div>
+                  {currentUser?.role === 'admin' && (
+                    <Link to="/admin" className="text-gray-200 dark:text-white/10 hover:text-navy dark:hover:text-mint transition-colors shrink-0">
+                      <span className="material-symbols-outlined">edit</span>
+                    </Link>
+                  )}
                 </div>
-                {currentUser?.role === 'admin' && (
-                  <Link to="/admin" className="text-gray-200 dark:text-white/10 hover:text-navy dark:hover:text-mint transition-colors">
-                    <span className="material-symbols-outlined">edit</span>
-                  </Link>
+
+                {/* Integrantes Preview */}
+                {u.integrantes && (
+                  <div className="mt-2 pt-4 border-t border-gray-50 dark:border-white/5">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Integrantes:</p>
+                    <div className="flex flex-wrap gap-2">
+                       {u.integrantes.split(',').map((name, i) => (
+                         <span key={i} className="px-3 py-1 bg-navy/5 dark:bg-white/5 rounded-full text-[10px] font-bold text-navy/70 dark:text-white/60">
+                           {name.trim()}
+                         </span>
+                       ))}
+                    </div>
+                  </div>
                 )}
               </div>
             ))}

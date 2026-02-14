@@ -3,12 +3,44 @@ import cors from 'cors';
 import bcryptjs from 'bcryptjs';
 import pool from './db.js';
 import { v4 as uuidv4 } from 'uuid';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3001;
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+
+// Create uploads directory if it doesn't exist
+const uploadDir = path.join(__dirname, '../public/uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Serve static files from public/uploads
+app.use('/uploads', express.static(uploadDir));
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 // ============================================================
 // AUTH ROUTES
@@ -24,7 +56,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const result = await pool.query(
-      'SELECT id, nome, email, telefone, banda, senha, role FROM users WHERE email = $1',
+      'SELECT id, nome, email, telefone, banda, photo_url, integrantes, senha, role FROM users WHERE email = $1',
       [email.toLowerCase().trim()]
     );
 
@@ -83,7 +115,7 @@ app.post('/api/register', async (req, res) => {
     const result = await pool.query(`
       INSERT INTO users (nome, email, telefone, banda, senha, role)
       VALUES ($1, $2, $3, $4, $5, 'user')
-      RETURNING id, nome, email, telefone, banda, role;
+      RETURNING id, nome, email, telefone, banda, photo_url, integrantes, role;
     `, [nome, email.toLowerCase().trim(), telefone || null, banda || null, hashedPassword]);
 
     // Mark token as used
@@ -98,6 +130,48 @@ app.post('/api/register', async (req, res) => {
   } catch (err) {
     console.error('Register error:', err);
     res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// PATCH /api/profile/:id (user updates own profile)
+app.patch('/api/profile/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, telefone, banda, photo_url, integrantes } = req.body;
+
+    const result = await pool.query(`
+      UPDATE users 
+      SET nome = COALESCE($1, nome),
+          telefone = COALESCE($2, telefone),
+          banda = COALESCE($3, banda),
+          photo_url = COALESCE($4, photo_url),
+          integrantes = COALESCE($5, integrantes)
+      WHERE id = $6
+      RETURNING id, nome, email, telefone, banda, photo_url, integrantes, role;
+    `, [nome, telefone, banda, photo_url, integrantes, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    res.json({ user: result.rows[0] });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Erro ao atualizar perfil' });
+  }
+});
+
+// POST /api/upload
+app.post('/api/upload', upload.single('photo'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
+  } catch (err) {
+    console.error('Upload error:', err);
+    res.status(500).json({ error: 'Erro ao fazer upload da imagem' });
   }
 });
 
@@ -135,7 +209,8 @@ app.get('/api/bookings', async (req, res) => {
         b.schedule_id,
         b.created_at,
         u.nome as user_name,
-        u.banda as banda_name
+        u.banda as banda_name,
+        u.photo_url
       FROM bookings b
       JOIN users u ON b.user_id = u.id
       JOIN schedules s ON b.schedule_id = s.id
@@ -237,7 +312,7 @@ app.delete('/api/bookings/:id', async (req, res) => {
 app.get('/api/admin/users', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, nome, email, telefone, banda, role, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, nome, email, telefone, banda, photo_url, integrantes, role, created_at FROM users ORDER BY created_at DESC'
     );
     res.json(result.rows);
   } catch (err) {
@@ -349,7 +424,8 @@ app.get('/api/bookings/poll', async (req, res) => {
         b.schedule_id,
         b.created_at,
         u.nome as user_name,
-        u.banda as banda_name
+        u.banda as banda_name,
+        u.photo_url
       FROM bookings b
       JOIN users u ON b.user_id = u.id
       JOIN schedules s ON b.schedule_id = s.id

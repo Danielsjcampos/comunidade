@@ -20,6 +20,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, pass: string) => Promise<boolean>;
   register: (data: Partial<User> & { senha?: string; token?: string }) => Promise<boolean>;
+  updateProfile: (data: Partial<User>) => Promise<boolean>;
   logout: () => void;
   bookings: Booking[];
   schedules: Schedule[];
@@ -148,6 +149,22 @@ const App: React.FC = () => {
     }
   };
 
+  const updateProfile = async (formData: Partial<User>) => {
+    if (!user) return false;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.updateProfile(user.id, formData);
+      setUser(data.user);
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setBookings([]);
@@ -184,7 +201,7 @@ const App: React.FC = () => {
 
   return (
     <AuthContext.Provider value={{ 
-      user, login, register, logout, bookings, schedules, addBooking, cancelBooking, refreshData, loading, error,
+      user, login, register, updateProfile, logout, bookings, schedules, addBooking, cancelBooking, refreshData, loading, error,
       theme, toggleTheme
     }}>
       <HashRouter>

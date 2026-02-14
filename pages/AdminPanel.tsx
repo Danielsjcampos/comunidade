@@ -4,6 +4,8 @@ import { useAuth } from '../App';
 import { api } from '../api';
 import { User, Schedule } from '../types';
 import { formatDateBR } from '../utils';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const AdminPanel: React.FC = () => {
   const { user, schedules, bookings } = useAuth();
@@ -100,11 +102,82 @@ const AdminPanel: React.FC = () => {
 
   const getBooking = (slotId: string) => bookings.find(b => b.schedule_id === slotId);
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(30, 58, 138); // Navy
+    doc.text('Escala Ministerial - Comunidade Cristã', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+    let currentY = 40;
+
+    const sortedDates = (Object.entries(groupedSchedules) as [string, Schedule[]][]).sort((a, b) => a[0].localeCompare(b[0]));
+
+    sortedDates.forEach(([date, slots]) => {
+      // Date Header
+      doc.setFillColor(30, 58, 138);
+      doc.rect(14, currentY, 182, 10, 'F');
+      doc.setTextColor(255);
+      doc.setFontSize(12);
+      doc.text(formatDateBR(date).toUpperCase(), 20, currentY + 7);
+      
+      currentY += 12;
+
+      // Table for slots
+      const tableData = slots.sort((a,b) => a.hora_inicio.localeCompare(b.hora_inicio)).map(slot => {
+        const b = getBooking(slot.id);
+        return [
+          `${slot.hora_inicio} - ${slot.hora_fim}`,
+          b ? (b.banda_name || b.user_name) : 'VAGO',
+          b ? 'CONFIRMADO' : 'AGUARDANDO'
+        ];
+      });
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Horário', 'Banda / Responsável', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [45, 212, 191] }, // Mint
+        styles: { fontSize: 10, cellPadding: 5 },
+        margin: { left: 14, right: 14 }
+      });
+
+      currentY = (doc as any).lastAutoTable.finalY + 15;
+
+      // New page if space is tight
+      if (currentY > 260 && sortedDates.indexOf([date, slots]) !== sortedDates.length - 1) {
+        doc.addPage();
+        currentY = 20;
+      }
+    });
+
+    doc.save(`escala-ministerial-${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8 animate-fade-in transition-colors pb-32">
       <header>
-        <h1 className="text-4xl font-black text-navy dark:text-white tracking-tight">Painel Administrativo</h1>
-        <p className="text-gray-500 dark:text-gray-400 font-medium">Gestão de escalas, bandas e convites.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black text-navy dark:text-white tracking-tight">Painel Administrativo</h1>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Gestão de escalas, bandas e convites.</p>
+          </div>
+          {activeTab === 'summary' && schedules.length > 0 && (
+            <button
+              onClick={handleExportPDF}
+              className="flex items-center justify-center gap-2 px-6 h-12 bg-mint text-navy font-black rounded-2xl shadow-lg shadow-mint/10 hover:shadow-mint/20 active:scale-95 transition-all text-xs uppercase tracking-widest whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-xl">picture_as_pdf</span>
+              Exportar PDF
+            </button>
+          )}
+        </div>
       </header>
 
       {message && (

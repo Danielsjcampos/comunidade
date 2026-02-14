@@ -27,6 +27,29 @@ export const api = {
     return data;
   },
 
+  async updateProfile(userId: string, profileData: Partial<User>) {
+    const res = await fetch(`${API_URL}/profile/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao atualizar perfil');
+    return data;
+  },
+
+  async uploadImage(file: File) {
+    const formData = new FormData();
+    formData.append('photo', file);
+    const res = await fetch(`${API_URL}/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao fazer upload da imagem');
+    return data;
+  },
+
   // Schedules
   async getSchedules() {
     const res = await fetch(`${API_URL}/schedules`);
