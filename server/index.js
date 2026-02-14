@@ -453,11 +453,17 @@ app.get('/api/health', async (req, res) => {
 // START SERVER
 // ============================================================
 
-app.listen(PORT, () => {
-  console.log('');
-  console.log('═'.repeat(50));
-  console.log('🚀 Servidor API rodando na porta ' + PORT);
-  console.log('📡 API URL: http://localhost:' + PORT + '/api');
-  console.log('═'.repeat(50));
-  console.log('');
-});
+// Export app for Vercel
+export default app;
+
+// Somente inicia o servidor se não estiver no Vercel
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log('');
+    console.log('═'.repeat(50));
+    console.log('🚀 Servidor API rodando na porta ' + PORT);
+    console.log('📡 API URL: http://localhost:' + PORT + '/api');
+    console.log('═'.repeat(50));
+    console.log('');
+  });
+}
