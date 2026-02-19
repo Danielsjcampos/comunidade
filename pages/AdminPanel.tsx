@@ -89,6 +89,22 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string, name: string) => {
+    if (!user) return;
+    if (window.confirm(`Tem certeza que deseja excluir "${name}"? Esta ação removerá o usuário e todas as suas reservas.`)) {
+      setLoading(true);
+      try {
+        await api.deleteUser(user.id, userId);
+        setMessage({ type: 'success', text: 'Usuário excluído com sucesso!' });
+        loadUsers();
+      } catch (err: any) {
+        setMessage({ type: 'error', text: err.message });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert('Copiado para a área de transferência!');
@@ -331,12 +347,22 @@ const AdminPanel: React.FC = () => {
                     <p className="text-xs text-mint font-bold uppercase tracking-widest mt-1">{u.banda || 'Individual'}</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">{u.email}</p>
                   </div>
-                  <button
-                    onClick={() => setEditingUser(u)}
-                    className="size-12 flex items-center justify-center rounded-2xl bg-gray-50 dark:bg-white/5 text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-mint dark:hover:text-navy transition-all shadow-sm"
-                  >
-                    <span className="material-symbols-outlined text-xl">edit</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setEditingUser(u)}
+                      className="size-12 flex items-center justify-center rounded-2xl bg-gray-50 dark:bg-white/5 text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-mint dark:hover:text-navy transition-all shadow-sm"
+                      title="Editar"
+                    >
+                      <span className="material-symbols-outlined text-xl">edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(u.id, u.banda || u.nome)}
+                      className="size-12 flex items-center justify-center rounded-2xl bg-gray-50 dark:bg-white/5 text-gray-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white transition-all shadow-sm"
+                      title="Excluir"
+                    >
+                      <span className="material-symbols-outlined text-xl">delete</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
