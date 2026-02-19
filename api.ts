@@ -130,6 +130,17 @@ export const api = {
     return data;
   },
 
+  async deleteUser(adminId: string, targetId: string) {
+    const res = await fetch(`${API_URL}/admin/users/${targetId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_id: adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao excluir usuário');
+    return data;
+  },
+
   // Health
   async healthCheck() {
     const res = await fetch(`${API_URL}/health`);

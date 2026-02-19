@@ -409,6 +409,36 @@ app.patch('/api/admin/users/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/admin/users/:id (admin only)
+app.delete('/api/admin/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { admin_id } = req.body;
+
+    // Verify admin
+    const admin = await pool.query('SELECT role FROM users WHERE id = $1', [admin_id]);
+    if (admin.rows[0]?.role !== 'admin') {
+      return res.status(403).json({ error: 'Sem permissão para excluir usuários' });
+    }
+
+    // Check if user exists
+    const user = await pool.query('SELECT id FROM users WHERE id = $1', [id]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    // Delete user (cascade will handle related data if configured, but let's be safe)
+    await pool.query('DELETE FROM bookings WHERE user_id = $1', [id]);
+    await pool.query('DELETE FROM invite_tokens WHERE created_by = $1 OR used_by = $1', [id]);
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+
+    res.json({ message: 'Usuário excluído com sucesso' });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    res.status(500).json({ error: 'Erro ao excluir usuário' });
+  }
+});
+
 // ============================================================
 // REAL-TIME POLLING ENDPOINT
 // ============================================================

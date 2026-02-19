@@ -28,6 +28,23 @@ const Bands: React.FC = () => {
     }
   };
 
+  const handleDelete = async (targetId: string, name: string) => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    
+    if (window.confirm(`Tem certeza que deseja excluir o ministério "${name}"? Esta ação não pode ser desfeita e removerá todas as reservas associadas.`)) {
+      try {
+        setLoading(true);
+        await api.deleteUser(currentUser.id, targetId);
+        // Refresh list
+        await loadBands();
+      } catch (err: any) {
+        alert(err.message || 'Erro ao excluir ministério');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     (u.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
      (u.banda?.toLowerCase().includes(searchTerm.toLowerCase()))) &&
@@ -103,9 +120,21 @@ const Bands: React.FC = () => {
                     </div>
                   </div>
                   {currentUser?.role === 'admin' && (
-                    <Link to="/admin" className="text-gray-200 dark:text-white/10 hover:text-navy dark:hover:text-mint transition-colors shrink-0">
-                      <span className="material-symbols-outlined">edit</span>
-                    </Link>
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <Link to="/admin" className="text-gray-200 dark:text-white/10 hover:text-navy dark:hover:text-mint transition-colors" title="Editar">
+                        <span className="material-symbols-outlined">edit</span>
+                      </Link>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDelete(u.id, u.banda || u.nome);
+                        }}
+                        className="text-gray-200 dark:text-white/10 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                        title="Excluir"
+                      >
+                        <span className="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
                   )}
                 </div>
 
