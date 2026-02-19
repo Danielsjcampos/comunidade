@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const AdminPanel: React.FC = () => {
-  const { user, schedules, bookings } = useAuth();
+  const { user, schedules, bookings, cancelBooking } = useAuth();
   const [activeTab, setActiveTab] = useState<'summary' | 'schedules' | 'bands' | 'invite'>('summary');
   const [users, setUsers] = useState<User[]>([]);
   const [inviteLink, setInviteLink] = useState('');
@@ -24,6 +24,7 @@ const AdminPanel: React.FC = () => {
 
   // Edit user state
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [viewingBookings, setViewingBookings] = useState<User | null>(null);
 
   useEffect(() => {
     if (activeTab === 'bands') {
@@ -47,6 +48,19 @@ const AdminPanel: React.FC = () => {
       const data = await api.generateInvite(user.id);
       setInviteLink(data.link);
       setMessage({ type: 'success', text: 'Convite gerado com sucesso!' });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdminCancel = async (bookingId: string, name: string) => {
+    if (!window.confirm(`Tem certeza que deseja cancelar a reserva de ${name}?`)) return;
+    setLoading(true);
+    try {
+      await cancelBooking(bookingId);
+      setMessage({ type: 'success', text: 'Reserva cancelada com sucesso!' });
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message });
     } finally {
@@ -270,8 +284,17 @@ const AdminPanel: React.FC = () => {
                             </div>
                           </div>
                           {booking && (
-                             <div className="size-8 bg-mint/10 rounded-xl flex items-center justify-center text-mint">
-                               <span className="material-symbols-outlined text-lg font-bold">check</span>
+                             <div className="flex items-center gap-2">
+                               <div className="size-8 bg-mint/10 rounded-xl flex items-center justify-center text-mint" title="Confirmado">
+                                 <span className="material-symbols-outlined text-lg font-bold">check</span>
+                               </div>
+                               <button 
+                                 onClick={() => handleAdminCancel(booking.id, booking.banda_name || booking.user_name)}
+                                 className="size-8 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-xl flex items-center justify-center text-red-500 transition-colors"
+                                 title="Cancelar reserva"
+                               >
+                                 <span className="material-symbols-outlined text-lg font-bold">close</span>
+                               </button>
                              </div>
                           )}
                         </div>
@@ -349,6 +372,13 @@ const AdminPanel: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={() => setViewingBookings(u)}
+                      className="size-12 flex items-center justify-center rounded-2xl bg-gray-50 dark:bg-white/5 text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-mint dark:hover:text-navy transition-all shadow-sm"
+                      title="Ver Reservas"
+                    >
+                      <span className="material-symbols-outlined text-xl">calendar_month</span>
+                    </button>
+                    <button
                       onClick={() => setEditingUser(u)}
                       className="size-12 flex items-center justify-center rounded-2xl bg-gray-50 dark:bg-white/5 text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-mint dark:hover:text-navy transition-all shadow-sm"
                       title="Editar"
@@ -410,6 +440,52 @@ const AdminPanel: React.FC = () => {
                      SALVAR ALTERAÇÕES
                    </button>
                 </form>
+              </div>
+            )}
+
+            {viewingBookings && (
+              <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-navy/40 dark:bg-black/60 backdrop-blur-sm">
+                <div className="w-full max-w-lg bg-white dark:bg-dark-surface rounded-4xl p-8 shadow-2xl animate-fade-in space-y-6 border border-white/5 max-h-[80vh] flex flex-col">
+                   <div className="flex justify-between items-center mb-4">
+                     <div>
+                       <h4 className="text-2xl font-black text-navy dark:text-white">Gerenciar Reservas</h4>
+                       <p className="text-xs font-bold text-mint uppercase tracking-widest">{viewingBookings.banda || viewingBookings.nome}</p>
+                     </div>
+                     <button type="button" onClick={() => setViewingBookings(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+                        <span className="material-symbols-outlined">close</span>
+                     </button>
+                   </div>
+                   
+                   <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                     {bookings.filter(b => b.user_id === viewingBookings.id).length === 0 ? (
+                       <div className="text-center py-10 bg-gray-50 dark:bg-white/5 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
+                         <span className="material-symbols-outlined text-gray-300 dark:text-white/20 text-4xl mb-2">event_busy</span>
+                         <p className="text-gray-400 dark:text-white/30 font-bold text-xs uppercase tracking-widest">Nenhuma reserva encontrada</p>
+                       </div>
+                     ) : (
+                       bookings.filter(b => b.user_id === viewingBookings.id).map(booking => {
+                         const schedule = schedules.find(s => s.id === booking.schedule_id);
+                         return (
+                           <div key={booking.id} className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/10 flex items-center justify-between">
+                             <div>
+                               <p className="text-navy dark:text-white font-black">{schedule ? formatDateBR(schedule.data_sabado) : 'Data desconhecida'}</p>
+                               <p className="text-xs text-mint font-bold uppercase tracking-widest mt-1">
+                                 {schedule ? `${schedule.hora_inicio} - ${schedule.hora_fim}` : 'Horário desconhecido'}
+                               </p>
+                             </div>
+                             <button 
+                               onClick={() => handleAdminCancel(booking.id, viewingBookings.banda || viewingBookings.nome)}
+                               className="size-10 bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20 rounded-xl flex items-center justify-center transition-colors"
+                               title="Cancelar Reserva"
+                             >
+                               <span className="material-symbols-outlined font-bold">close</span>
+                             </button>
+                           </div>
+                         );
+                       })
+                     )}
+                   </div>
+                </div>
               </div>
             )}
           </div>
