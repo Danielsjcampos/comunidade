@@ -4,11 +4,7 @@ import { useAuth } from '../App';
 import { Link } from 'react-router-dom';
 import AnoAI from '../components/ui/animated-shader-background';
 
-const DEV_ACCOUNTS = [
-  { label: '👑 Super Admin', email: 'admin@igreja.com', senha: 'admin123', className: 'bg-white/10 text-white backdrop-blur-md border border-white/20' },
-  { label: '🎸 Banda Gratidão', email: 'david@igreja.com', senha: 'banda123', className: 'bg-mint/80 text-navy backdrop-blur-md' },
-  { label: '🎤 Ministério Zoe', email: 'maria@igreja.com', senha: 'banda123', className: 'bg-mint/80 text-navy backdrop-blur-md' },
-];
+
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -28,17 +24,7 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleDevLogin = async (devEmail: string, devSenha: string) => {
-    setLoginError(null);
-    setIsLoading(true);
-    setEmail(devEmail);
-    setPassword(devSenha);
-    const success = await login(devEmail, devSenha);
-    setIsLoading(false);
-    if (!success) {
-      setLoginError('Erro ao fazer login. Verifique se o banco foi configurado.');
-    }
-  };
+
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-6 font-sans overflow-hidden">
@@ -120,23 +106,7 @@ const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Access Grid */}
-          <div className="mt-10 pt-8 border-t border-white/10">
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4 text-center">Acesso rápido desenvolvedor</p>
-            <div className="grid grid-cols-1 gap-2">
-              {DEV_ACCOUNTS.map((acc) => (
-                <button 
-                  key={acc.email}
-                  onClick={() => handleDevLogin(acc.email, acc.senha)}
-                  disabled={isLoading}
-                  className={`flex items-center justify-between p-4 rounded-2xl ${acc.className} font-bold text-xs shadow-lg active:scale-[0.98] transition-all disabled:opacity-50`}
-                >
-                  <span className="uppercase tracking-widest">{acc.label}</span>
-                  <span className="opacity-50 font-medium lowercase font-mono">{acc.email}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+
         </div>
 
         <div className="mt-8 text-center text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">
