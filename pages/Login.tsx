@@ -27,9 +27,11 @@ const Login: React.FC = () => {
 
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 font-sans overflow-hidden">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 font-sans overflow-hidden bg-gray-50 dark:bg-[#0a0f18] transition-colors duration-300">
       {/* Animated Background */}
-      <AnoAI />
+      <div className="fixed inset-0 z-0 opacity-30 dark:opacity-100 transition-opacity duration-300">
+        <AnoAI />
+      </div>
 
       <div className="w-full max-w-[420px] flex flex-col items-center animate-fade-in z-10">
         {/* Logo Section */}
@@ -38,28 +40,28 @@ const Login: React.FC = () => {
             <span className="material-symbols-outlined !text-5xl">church</span>
           </div>
           <div className="text-center">
-            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">Escala Ministerial</h1>
-            <p className="text-mint font-bold text-base mt-2 drop-shadow-md">Comunidade Cristã</p>
+            <h1 className="text-3xl font-black text-navy dark:text-white tracking-tight drop-shadow-lg transition-colors">Escala Ministerial</h1>
+            <p className="text-navy/80 dark:text-mint font-bold text-base mt-2 drop-shadow-md transition-colors">Comunidade Cristã</p>
           </div>
         </div>
 
         {/* Login Form Card - GLASSMORPHISM */}
-        <div className="w-full bg-white/10 dark:bg-black/20 backdrop-blur-xl p-8 rounded-4xl shadow-2xl border border-white/20 transition-all hover:border-white/40 hover:bg-white/15">
-          <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-wider text-xs opacity-70">Acesso ao Sistema</h2>
+        <div className="w-full bg-white/80 dark:bg-white/10 backdrop-blur-xl p-8 rounded-4xl shadow-2xl border border-gray-200 dark:border-white/20 transition-all hover:border-navy/20 dark:hover:border-white/40 hover:bg-white/90 dark:hover:bg-white/15">
+          <h2 className="text-2xl font-black text-navy dark:text-white mb-6 uppercase tracking-wider text-xs opacity-70 transition-colors">Acesso ao Sistema</h2>
 
           {/* Error Message */}
           {loginError && (
-            <div className="mb-6 p-4 bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-2xl flex items-center gap-3">
-              <span className="material-symbols-outlined text-red-400 text-xl">error</span>
-              <p className="text-red-200 text-sm font-medium">{loginError}</p>
+            <div className="mb-6 p-4 bg-red-100 dark:bg-red-500/20 backdrop-blur-md border border-red-200 dark:border-red-500/30 rounded-2xl flex items-center gap-3">
+              <span className="material-symbols-outlined text-red-500 dark:text-red-400 text-xl">error</span>
+              <p className="text-red-700 dark:text-red-200 text-sm font-medium">{loginError}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-2" htmlFor="email">Email</label>
+              <label className="text-[10px] font-black text-navy/50 dark:text-white/50 uppercase tracking-widest ml-2" htmlFor="email">Email</label>
               <input 
-                className="block w-full px-5 h-14 rounded-2xl border border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-mint focus:ring-4 focus:ring-mint/5 outline-none transition-all font-medium"
+                className="block w-full px-5 h-14 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-navy dark:text-white placeholder:text-navy/30 dark:placeholder:text-white/30 focus:bg-white dark:focus:bg-white/10 focus:border-navy dark:focus:border-mint focus:ring-4 focus:ring-navy/5 dark:focus:ring-mint/5 outline-none transition-all font-medium"
                 id="email" 
                 placeholder="seu@email.com" 
                 type="email"
@@ -71,9 +73,9 @@ const Login: React.FC = () => {
             </div>
             
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-2" htmlFor="password">Senha</label>
+              <label className="text-[10px] font-black text-navy/50 dark:text-white/50 uppercase tracking-widest ml-2" htmlFor="password">Senha</label>
               <input 
-                className="block w-full px-5 h-14 rounded-2xl border border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:bg-white/10 focus:border-mint focus:ring-4 focus:ring-mint/5 outline-none transition-all font-medium"
+                className="block w-full px-5 h-14 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-navy dark:text-white placeholder:text-navy/30 dark:placeholder:text-white/30 focus:bg-white dark:focus:bg-white/10 focus:border-navy dark:focus:border-mint focus:ring-4 focus:ring-navy/5 dark:focus:ring-mint/5 outline-none transition-all font-medium"
                 id="password" 
                 placeholder="••••••••" 
                 type="password"
@@ -85,18 +87,18 @@ const Login: React.FC = () => {
             </div>
 
             <div className="flex justify-end px-1">
-              <button type="button" className="text-xs font-bold text-mint hover:underline transition-all">
+              <button type="button" className="text-xs font-bold text-navy dark:text-mint hover:underline transition-all">
                 Esqueci a senha
               </button>
             </div>
 
             <button 
-              className="w-full bg-mint text-navy font-black h-16 rounded-2xl shadow-xl shadow-mint/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm mt-4 hover:brightness-110" 
+              className="w-full bg-navy dark:bg-mint text-white dark:text-navy font-black h-16 rounded-2xl shadow-xl shadow-navy/10 dark:shadow-mint/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm mt-4 hover:brightness-110" 
               type="submit"
               disabled={isLoading}
             >
               {isLoading ? (
-                <div className="size-6 border-2 border-navy/30 border-t-navy rounded-full animate-spin"></div>
+                <div className="size-6 border-2 border-white/30 dark:border-navy/30 border-t-white dark:border-t-navy rounded-full animate-spin"></div>
               ) : (
                 <>
                   <span>Entrar</span>
@@ -109,7 +111,7 @@ const Login: React.FC = () => {
 
         </div>
 
-        <div className="mt-8 text-center text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">
+        <div className="mt-8 text-center text-[10px] text-navy/20 dark:text-white/20 font-black uppercase tracking-[0.3em] transition-colors">
           <p>© 2024 Comunidade Cristã • Escala 2.0</p>
         </div>
       </div>
